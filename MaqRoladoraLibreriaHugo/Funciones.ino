@@ -11,7 +11,6 @@ void pwmFunctions() {
   }
 }
 
-
 void onMotor() {
   digitalWrite(Bomba, HIGH); //initialize in low state
   digitalWrite(Presion_menos, HIGH);
@@ -25,6 +24,7 @@ void onMotor() {
     ClearLCDRight = 0;
   }
 }
+
 void onMotorAvance() {
   digitalWrite(Bomba, HIGH); //initialize in low state
   digitalWrite(Presion_mas, HIGH);

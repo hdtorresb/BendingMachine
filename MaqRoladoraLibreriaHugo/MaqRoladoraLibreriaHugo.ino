@@ -22,18 +22,13 @@ volatile bool _LeftEncoderBSet;
 volatile long _LeftEncoderTicks = 0;
 volatile float verticalmm;
 volatile float paso = 0.58222;
-
-
 // Avance encoder
 #define c_RightEncoderInterrupt 1  //pin 3 arduino mega
 #define c_RightEncoderPinA 26
 #define c_RightEncoderPinB 27
 volatile bool _RightEncoderBSet;
 volatile long _RightEncoderTicks = 0;
-
 // Funciones del sistema
-
-
 // Pin retroceso
 #define Retroceso 28
 //Pin avance
@@ -45,21 +40,15 @@ volatile int PWMwidthLow;
 // Presion -
 #define Presion_menos 31
 #define Bomba 40
-
 // Variable de final de carrera pistón hidráulico y Recorrido prefil
 //Cada uno de los estados de estas dos variables es definido por un switch mecánico
 //El FinCarrera define el cero del encoder de presión + y presión -
-
 #define PinFinCarreraInterrupt 4  //pin 19 arduino mega
 #define PinRecorridoPerfilInterrupt 5 //pin 18 arduino mega
-
 volatile bool FinCarrera;
 volatile bool RecorridoPerfil;
-
-
 volatile bool ClearLCDLeft;
 volatile bool ClearLCDRight;
-
 String inputString = "";         // a string to hold incoming data
 boolean stringComplete = false;  // whether the string is complete
 char inChar;
@@ -68,22 +57,10 @@ volatile boolean estado = LOW;
 volatile boolean prueba = HIGH;
 volatile long contador = 0;    //contador propio del timer uno para las rutinas de rolado de las catenarias
 volatile int contador1 = 0;  // contador para programar los tiempos de impresión por serial de la variable contador
-
 volatile float vel;
 //debug 
 # define debug 1
-
 //arreglos para diferentes perfiles 
-
-
-
-/*
-  Servo _RightServo;  // create servo object to control right motor
-  Servo _LeftServo;  // create servo object to control left motor
-
-  int potpin = 0;  // analog pin used to connect the potentiometer
-  int val;    // variable to read the value from the analog pin
-*/
 void setup()
 {
   #ifdef debug
@@ -160,15 +137,12 @@ void loop()
   //Esta rutina tiene como objetivo imponer ciclos de encendido de apagado de la valvula y la bomba durante dos segundos (1 segundo prendida y uno apagado), mostrarlos desplazamientos
   //después de cada ciclo
   //La rutina2 tiene como objetivo alternar ciclos de 3 y 1 segundos de encendido y apagado del pin de presión más, de igual manera, al final de cada ciclo se visualiza la distancia recorrida
-
-
   // Condición de búsqueda del cero en el movimiento vertical
   if (FinCarrera == 0)
   {
     // digitalWrite(Bomba, HIGH); //initialize in low state
     //digitalWrite(Presion_menos, HIGH);
   }
-
   if (ClearLCDLeft || ClearLCDRight)
   {
     lcd.clear();
@@ -178,7 +152,6 @@ void loop()
     ClearLCDLeft = 0;
     ClearLCDRight = 0;
   }
-
   /*
 
      La siguiente es la condicional que permite iniciar el proceso de rolado de la catenaria. Este es controlado por medio del TMR1, consiste en un programa que considera desplazamientos
@@ -186,13 +159,10 @@ void loop()
      y las distancias de deflexion de los perfiles para alcanzar dicho radio de curvarura
 
      La catenaria uno obedece a la curva descrita en la ecuación f(x)=-cosh(x)
-
   */
-
   if (inputString == "catenaria1") {
     Timer1.start();
     Timer1.initialize(1000);          //El timer se dispara cada 1 ms
-
     while (contador != 0 ) {
       /*
           if(contador == 1){

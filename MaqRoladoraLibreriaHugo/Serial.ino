@@ -15,6 +15,7 @@ void serialEvent() {
   }
 }
 
+
 void comandosSerial(String datoEntrada ) {
   if (datoEntrada == "vel") {
     Timer1.start();
@@ -41,7 +42,6 @@ void comandosSerial(String datoEntrada ) {
       Serial.println(contador);
     }
   }
-
   if (datoEntrada == "cero") {
     PWMwidthHigh = 500;
     PWMwidthLow = 500;
@@ -65,6 +65,4 @@ void comandosSerial(String datoEntrada ) {
     lcd.setCursor(0, 1); lcd.print(_RightEncoderTicks);
     inputString = "";
   }
-
-
 }
