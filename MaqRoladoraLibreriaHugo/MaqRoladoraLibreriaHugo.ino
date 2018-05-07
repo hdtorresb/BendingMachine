@@ -70,6 +70,12 @@ volatile long contador = 0;    //contador propio del timer uno para las rutinas 
 volatile int contador1 = 0;  // contador para programar los tiempos de impresión por serial de la variable contador
 
 volatile float vel;
+//debug 
+# define debug 1
+
+//arreglos para diferentes perfiles 
+
+
 
 /*
   Servo _RightServo;  // create servo object to control right motor
@@ -80,7 +86,9 @@ volatile float vel;
 */
 void setup()
 {
+  #ifdef debug
   Serial.println("Bienvenido");
+  #endif
   Timer1.initialize(10000);          //El timer se dispara cada 10 ms
   Timer1.attachInterrupt(ISR_Tiempo);  //activacion de la interrupcion por timer
   lcd.begin();
@@ -146,120 +154,13 @@ void setup()
 }
 
 void loop()
-{
-  /* val = analogRead(potpin);            // reads the value of the potentiometer (value between 0 and 1023)
-    val = map(val, 0, 1023, 0, 179);     // scale it to use it with the servo (value between 0 and 180)
+{ 
 
-    _RightServo.write(val);
-    _LeftServo.write(val);
-  */
-
-  //Condición de PWM constate por el pin Presion_mas inicia con una freciencia de 200ms aprox
-  if (PWMOn == 1) {
-    digitalWrite(Bomba, HIGH); //initialize in low state
-    digitalWrite(Presion_mas, HIGH);
-    delay(PWMwidthHigh);
-    digitalWrite(Presion_mas, LOW);
-    digitalWrite(Bomba, LOW); //initialize in low state
-    delay(PWMwidthLow);
-    lcd.clear();
-    verticalmm = _LeftEncoderTicks * paso;
-    lcd.setCursor(0, 0); lcd.print(verticalmm); lcd.print("mm");
-    lcd.setCursor(0, 1); lcd.print(_RightEncoderTicks);
-  }
   comandosSerial(inputString);
   //Esta rutina tiene como objetivo imponer ciclos de encendido de apagado de la valvula y la bomba durante dos segundos (1 segundo prendida y uno apagado), mostrarlos desplazamientos
   //después de cada ciclo
   //La rutina2 tiene como objetivo alternar ciclos de 3 y 1 segundos de encendido y apagado del pin de presión más, de igual manera, al final de cada ciclo se visualiza la distancia recorrida
-  if (inputString == "-" && PWMOn == 1) {
-    if (PWMwidthHigh == 1000 || PWMwidthLow == 1000) {
-      Serial.print ("tope");
-      Serial.print ("\n\r");
-      inputString = "";
-      PWMwidthHigh = PWMwidthHigh + 1;
-      PWMwidthLow = PWMwidthLow - 1;
-    }
-    else {
-      PWMwidthHigh = PWMwidthHigh - 1;
-      PWMwidthLow = PWMwidthLow + 1;
-      Serial.println(inputString);
-      Serial.print ("\n\r");
-      Serial.print (PWMwidthHigh);
-      Serial.print ("\n\r");
-      Serial.print (PWMwidthLow);
-      Serial.print ("\n\r");
-      inputString = "";
-    }
-  }
-  if (inputString == "a" && PWMOn == 1) {
-    if (PWMwidthHigh == 1000 || PWMwidthLow == 1000) {
-      Serial.print ("tope");
-      Serial.print ("\n\r");
-      inputString = "";
-      PWMwidthHigh = PWMwidthHigh + 10;
-      PWMwidthLow = PWMwidthLow - 10;
-    }
-    else {
-      PWMwidthHigh = PWMwidthHigh - 10;
-      PWMwidthLow = PWMwidthLow + 10;
-      Serial.println(inputString);
-      Serial.print ("\n\r");
-      Serial.print (PWMwidthHigh);
-      Serial.print ("\n\r");
-      Serial.print (PWMwidthLow);
-      Serial.print ("\n\r");
-      inputString = "";
-    }
 
-  }
-
-  if (inputString == "+" && PWMOn == 1) {
-    if (PWMwidthHigh == 1000 || PWMwidthLow == 1000) {
-      Serial.print ("tope");
-      Serial.print ("\n\r");
-      inputString = "";
-      PWMwidthHigh = PWMwidthHigh - 1;
-      PWMwidthLow = PWMwidthLow + 1;
-    }
-    else {
-      PWMwidthHigh = PWMwidthHigh + 1;
-      PWMwidthLow = PWMwidthLow - 1;
-      Serial.println(inputString);
-      Serial.print ("\n\r");
-      Serial.print (PWMwidthHigh);
-      Serial.print ("\n\r");
-      Serial.print (PWMwidthLow);
-      Serial.print ("\n\r");
-      inputString = "";
-    }
-  }
-
-  if (inputString == "q" && PWMOn == 1) {
-    if (PWMwidthHigh == 1000 || PWMwidthLow == 1000) {
-      Serial.print ("tope");
-      Serial.print ("\n\r");
-      inputString = "";
-      PWMwidthHigh = PWMwidthHigh - 10;
-      PWMwidthLow = PWMwidthLow + 10;
-    }
-    else {
-      PWMwidthHigh = PWMwidthHigh + 10;
-      PWMwidthLow = PWMwidthLow - 10;
-      Serial.println(inputString);
-      Serial.print ("\n\r");
-      Serial.print (PWMwidthHigh);
-      Serial.print ("\n\r");
-      Serial.print (PWMwidthLow);
-      Serial.print ("\n\r");
-      inputString = "";
-    }
-  }
-  // print the string when a newline arrives:
-  /* if (stringComplete) {
-     Serial.println(inputString);
-     // clear the string:
-     inputString = "";
-     stringComplete = false; }*/
 
   // Condición de búsqueda del cero en el movimiento vertical
   if (FinCarrera == 0)
@@ -277,18 +178,6 @@ void loop()
     ClearLCDLeft = 0;
     ClearLCDRight = 0;
   }
-
-  //lcd.setCursor(0, 0); lcd.print(_LeftEncoderTicks);
-  //lcd.setCursor(0, 1); lcd.print(_RightEncoderTicks);
-
-  /*
-    Serial.print(_LeftEncoderTicks);
-    Serial.print("\t");
-    Serial.print(_RightEncoderTicks);
-    Serial.print("\n");
-
-    delay(20);*/
-
 
   /*
 
@@ -713,7 +602,7 @@ void loop()
       }
     }
   }//fin Catenaria 3
-}
+}// fin loop 
 // Interrupt service routines for the left motor's quadrature encoder
 void HandleLeftMotorInterruptA()
 {
