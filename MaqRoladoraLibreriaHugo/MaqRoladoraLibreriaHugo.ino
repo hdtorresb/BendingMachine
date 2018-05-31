@@ -5,7 +5,6 @@
 #include <digitalWriteFast.h>  // library for high performance reads and writes by jrraines
 // see http://www.arduino.cc/cgi-bin/yabb2/YaBB.pl?num=1267553811/0
 // and http://code.google.com/p/digitalwritefast/
-
 // It turns out that the regular digitalRead() calls are too slow and bring the arduino down when
 // I use them in the interrupt routines while the motor runs at full speed creating more than
 // 40000 encoder ticks per second per motor.
@@ -61,15 +60,25 @@ volatile float vel;
 //debug 
 # define debug 1
 //arreglos para diferentes perfiles 
+
+//Variables para tiempos
+# define TiempoEncoder8cm 44 //44 milisegundos 
+//Arreglos tiempo acumulados en ms
+int tiemposAcumulados[]={    0,  2540,  4768,  6105,  7339,  8483,  9547, 10544, 11019, 11932,
+ 12800, 13631, 14436, 15994, 17150, 18722, 19539, 20387, 21276, 22214,
+ 22705, 23734, 24837, 26024, 27308, 28702, 31028};
+ unsigned int contadorRutinatiempos=0;
+
 void setup()
-{
+{ Serial.begin(9600);
   #ifdef debug
+  Serial.println(sizeof(tiemposAcumulados)/(sizeof(tiemposAcumulados[0])));
   Serial.println("Bienvenido");
   #endif
-  Timer1.initialize(10000);          //El timer se dispara cada 10 ms
+  Timer1.initialize(1000);          //El timer se dispara cada 1 ms
   Timer1.attachInterrupt(ISR_Tiempo);  //activacion de la interrupcion por timer
   lcd.begin();
-  Serial.begin(9600);
+  
   Timer1.stop();
   contador = 0;
   // reserve 200 bytes for the inputString:
@@ -637,7 +646,8 @@ void ISRRecorridoPerfilInterrupt()
 
 */
 void ISR_Tiempo()               //funcion de interrupcion por timer
-{
+{ 
+  contadorRutinatiempos++;
   contador++;
   if (inputString == "catenaria1") {
     if (contador > 0 && contador < 20) { //560,580
@@ -790,5 +800,49 @@ void ISR_Tiempo()               //funcion de interrupcion por timer
     }
 
   }
+}
+
+/*Arreglo a usar tiemposAcumulados[]={    0,  2540,  4768,  6105,  7339,  8483,  9547, 10544, 11019, 11932,
+ 12800, 13631, 14436, 15994, 17150, 18722, 19539, 20387, 21276, 22214,
+ 22705, 23734, 24837, 26024, 27308, 28702, 31028};*/
+
+void RutinaTiempo(){
+if(contadorRutinatiempos>tiemposAcumulados[0]){
+
+}
+
+}
+
+void bajarTickconTiempo(bool banderaConteo,bool decicionsubir){
+if(banderaConteo){
+  if(decicionsubir){
+
+  }
+  else
+  {
+
+  }
+
+}
+
+}
+
+void encendidoMotorBombaSubir(){
+  digitalWrite(Bomba, HIGH); //initialize in low state
+  digitalWrite(Presion_mas, HIGH);
+  digitalWrite(Avance, HIGH);
+}
+
+void encendidoMotorbajar(){ 
+   digitalWrite(Bomba, HIGH); //initialize in low state
+  digitalWrite(Presion_menos, HIGH);
+  digitalWrite(Avance, HIGH);
+}
+
+void apagadoMotorBomba(){
+    digitalWrite(Bomba, LOW); //initialize in low state
+    digitalWrite(Presion_menos, LOW);
+    digitalWrite(Retroceso, LOW);
+    digitalWrite(Presion_mas, LOW);
 }
 
