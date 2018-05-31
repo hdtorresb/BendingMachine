@@ -60,21 +60,42 @@ volatile float vel;
 //debug 
 # define debug 1
 //arreglos para diferentes perfiles 
-
 //Variables para tiempos
 # define TiempoEncoder8cm 44 //44 milisegundos 
+volatile unsigned int i=0;
+unsigned int sizeArray=0;
 //Arreglos tiempo acumulados en ms
 int tiemposAcumulados[]={    0,  2540,  4768,  6105,  7339,  8483,  9547, 10544, 11019, 11932,
  12800, 13631, 14436, 15994, 17150, 18722, 19539, 20387, 21276, 22214,
  22705, 23734, 24837, 26024, 27308, 28702, 31028};
  unsigned int contadorRutinatiempos=0;
+ volatile bool banderaConteo=1;
+ unsigned int maxValueArray=0;
+ bool cambioRadio=0;
+ bool comenzar=0;
+int Radios[]={1310, 1750, 2180, 2620, 3060, 3490, 3930, 4370, 4800, 5240, 5680, 6110,
+ 6550, 6990, 6550, 6110, 5680, 5240, 4800, 4370, 3930, 3490, 3060, 2620,
+ 2180, 1750, 1310,};
+int diferenciasRadio=0;
+
 
 void setup()
 { Serial.begin(9600);
   #ifdef debug
-  Serial.println(sizeof(tiemposAcumulados)/(sizeof(tiemposAcumulados[0])));
   Serial.println("Bienvenido");
+  Serial.println(sizeof(tiemposAcumulados)/(sizeof(tiemposAcumulados[0])));  
+  
   #endif
+  //encontramos tamaño del arreglo y el mayor valor 
+  sizeArray=sizeof(tiemposAcumulados)/(sizeof(tiemposAcumulados[0]));
+  maxValueArray=tiemposAcumulados[0];
+  for (i=0; i<sizeArray; i++){
+    if(tiemposAcumulados[i]>maxValueArray){
+      maxValueArray=tiemposAcumulados[i];
+    }
+  }
+  Serial.println(maxValueArray);
+  i=0;
   Timer1.initialize(1000);          //El timer se dispara cada 1 ms
   Timer1.attachInterrupt(ISR_Tiempo);  //activacion de la interrupcion por timer
   lcd.begin();
@@ -103,9 +124,7 @@ void setup()
   pinMode(c_RightEncoderPinB, INPUT);      // sets pin B as input
   digitalWrite(c_RightEncoderPinB, LOW);  // turn on pullup resistors
   attachInterrupt(c_RightEncoderInterrupt, HandleRightMotorInterruptA, RISING);
-  // Funciones de interrupción de final de carrera y recorrido del perfil
-  attachInterrupt(PinFinCarreraInterrupt, ISRFinCarreraInterrupt, RISING);
-  attachInterrupt(PinRecorridoPerfilInterrupt, ISRRecorridoPerfilInterrupt, RISING);
+
   // Pin retroceso
   pinMode(Retroceso, OUTPUT);   //sets pin Retroceso as output
   digitalWrite(Retroceso, LOW);  //initilize in low state
@@ -141,7 +160,7 @@ void setup()
 
 void loop()
 { 
-  comandosSerial(inputString);
+   comandosSerial(inputString);
   //Esta rutina tiene como objetivo imponer ciclos de encendido de apagado de la valvula y la bomba durante dos segundos (1 segundo prendida y uno apagado), mostrarlos desplazamientos
   //después de cada ciclo
   //La rutina2 tiene como objetivo alternar ciclos de 3 y 1 segundos de encendido y apagado del pin de presión más, de igual manera, al final de cada ciclo se visualiza la distancia recorrida
@@ -160,6 +179,19 @@ void loop()
     ClearLCDLeft = 0;
     ClearLCDRight = 0;
   }
+  if(inputString=="rutinatiempo"){
+    comenzar=1;
+    contadorRutinatiempos=0;
+    i=0;
+    inputString="";    
+  }
+  CambioSubidaBajada(i);
+  RutinaTiempo(comenzar);
+  bajarTickconTiempo(cambioRadio);
+   if (contadorRutinatiempos>maxValueArray){
+  contadorRutinatiempos=0;
+  comenzar=0;
+ }
 
 
 }// fin loop 
@@ -218,43 +250,42 @@ void ISRFinCarreraInterrupt()
   }
 }
 
-// Interrupt service for set the begining of measure total distance traveled
-void ISRRecorridoPerfilInterrupt()
-{
-
-}
-/*
-
-*/
 void ISR_Tiempo()               //funcion de interrupcion por timer
 { 
   contadorRutinatiempos++;
   contador++;
-
-
 }
 
 /*Arreglo a usar tiemposAcumulados[]={    0,  2540,  4768,  6105,  7339,  8483,  9547, 10544, 11019, 11932,
  12800, 13631, 14436, 15994, 17150, 18722, 19539, 20387, 21276, 22214,
  22705, 23734, 24837, 26024, 27308, 28702, 31028};*/
 
-void RutinaTiempo(){
-if(contadorRutinatiempos>tiemposAcumulados[0]){
-
+void RutinaTiempo(bool beginRutina){
+if(beginRutina){
+if(contadorRutinatiempos>tiemposAcumulados[i] and i<sizeArray){
+  i++;
+  banderaConteo=1;
+  contador=0;
+}
+}
 }
 
-}
-
-void bajarTickconTiempo(bool banderaConteo,bool decicionsubir){
+void bajarTickconTiempo(bool decicionsubir){
 if(banderaConteo){
   if(decicionsubir){
     encendidoMotorBombaSubir();
+    if(contador>TiempoEncoder8cm){
+      banderaConteo=0;
+    }
   }
   else
   {
     encendidoMotorbajar();
-  }
-}
+     if(contador>TiempoEncoder8cm){
+      banderaConteo=0;
+    }
+  }//fin else
+}//fin if bandera conteo
 else{
   apagadoMotorBomba();
 }
@@ -277,5 +308,27 @@ void apagadoMotorBomba(){
     digitalWrite(Presion_menos, LOW);
     digitalWrite(Retroceso, LOW);
     digitalWrite(Presion_mas, LOW);
+}
+/*
+int Radios[]={1310, 1750, 2180, 2620, 3060, 3490, 3930, 4370, 4800, 5240, 5680, 6110,
+ 6550, 6990, 6550, 6110, 5680, 5240, 4800, 4370, 3930, 3490, 3060, 2620,
+ 2180, 1750, 1310,};
+*/
+
+void CambioSubidaBajada(int posArreglo){
+if(posArreglo<sizeArray){
+diferenciasRadio=Radios[posArreglo+1]-Radios[posArreglo];
+if (diferenciasRadio>0){
+  cambioRadio=0;
+}
+else if(diferenciasRadio<0){
+  cambioRadio=1;
+}
+}
+else
+{
+  cambioRadio=1;
+}
+
 }
 
