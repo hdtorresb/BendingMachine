@@ -58,7 +58,8 @@ volatile long contador = 0;    //contador propio del timer uno para las rutinas 
 volatile int contador1 = 0;  // contador para programar los tiempos de impresión por serial de la variable contador
 volatile float vel;
 //debug 
-# define debug 1
+# define debug 0
+//# define debugtime 0
 //arreglos para diferentes perfiles 
 //Variables para tiempos
 # define TiempoEncoder8cm 44 //44 milisegundos 
@@ -68,8 +69,8 @@ unsigned int sizeArray=0;
 int tiemposAcumulados[]={    0,  2540,  4768,  6105,  7339,  8483,  9547, 10544, 11019, 11932,
  12800, 13631, 14436, 15994, 17150, 18722, 19539, 20387, 21276, 22214,
  22705, 23734, 24837, 26024, 27308, 28702, 31028};
- unsigned int contadorRutinatiempos=0;
- volatile bool banderaConteo=1;
+ volatile unsigned int contadorRutinatiempos=0;
+ volatile bool banderaConteo=0;
  unsigned int maxValueArray=0;
  bool cambioRadio=0;
  bool comenzar=0;
@@ -100,7 +101,7 @@ void setup()
   Timer1.attachInterrupt(ISR_Tiempo);  //activacion de la interrupcion por timer
   lcd.begin();
   
-  Timer1.stop();
+  //Timer1.stop();
   contador = 0;
   // reserve 200 bytes for the inputString:
   inputString.reserve(200);
@@ -179,9 +180,12 @@ void loop()
     ClearLCDLeft = 0;
     ClearLCDRight = 0;
   }
+  //Serial.println(banderaConteo);
   if(inputString=="rutinatiempo"){
+    Serial.println("Comenzo Rutina");
     comenzar=1;
     contadorRutinatiempos=0;
+    contador=0;
     i=0;
     inputString="";    
   }
@@ -191,6 +195,7 @@ void loop()
    if (contadorRutinatiempos>maxValueArray){
   contadorRutinatiempos=0;
   comenzar=0;
+  Serial.println("Terminamos");
  }
 
 
@@ -262,17 +267,27 @@ void ISR_Tiempo()               //funcion de interrupcion por timer
 
 void RutinaTiempo(bool beginRutina){
 if(beginRutina){
+  #ifdef debugtime
+  Serial.print("Contador=");
+  Serial.println(contador);
+  Serial.print("contadorRutinatiempos=");
+  Serial.println(contadorRutinatiempos);
+   Serial.print("i=");
+  Serial.println(i);
+  #endif
 if(contadorRutinatiempos>tiemposAcumulados[i] and i<sizeArray){
   i++;
   banderaConteo=1;
   contador=0;
 }
 }
+
 }
 
 void bajarTickconTiempo(bool decicionsubir){
 if(banderaConteo){
   if(decicionsubir){
+    Serial.print("Subir");
     encendidoMotorBombaSubir();
     if(contador>TiempoEncoder8cm){
       banderaConteo=0;
@@ -280,6 +295,7 @@ if(banderaConteo){
   }
   else
   {
+    Serial.print("Bajar");
     encendidoMotorbajar();
      if(contador>TiempoEncoder8cm){
       banderaConteo=0;
@@ -287,6 +303,7 @@ if(banderaConteo){
   }//fin else
 }//fin if bandera conteo
 else{
+  //Serial.print("Apagar");
   apagadoMotorBomba();
 }
 }
