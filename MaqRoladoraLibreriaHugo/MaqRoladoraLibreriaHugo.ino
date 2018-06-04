@@ -180,6 +180,7 @@ void loop()
     ClearLCDLeft = 0;
     ClearLCDRight = 0;
   }
+  /*
   //Serial.println(banderaConteo);
   if(inputString=="rutinatiempo"){
     Serial.println("Comenzo Rutina");
@@ -197,6 +198,7 @@ void loop()
   comenzar=0;
   Serial.println("Terminamos");
  }
+ */
 
 
 }// fin loop 
@@ -348,4 +350,12 @@ else
 }
 
 }
+
+
+void RutinaArregloEncoder(){
+  
+
+
+}
+
 
