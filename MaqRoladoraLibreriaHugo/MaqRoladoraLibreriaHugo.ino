@@ -28,15 +28,20 @@ volatile bool _RightEncoderBSet;
 volatile long _RightEncoderTicks = 0;
 // Funciones del sistema
 // Pin retroceso
-#define Retroceso 28
-// Pin avance
-#define Avance 29
+
 // Presion +
-#define Presion_mas 30
+
 volatile int PWMwidthHigh;
 volatile int PWMwidthLow;
 // Presion -
-#define Presion_menos 31
+
+//pines comunicacion y bombas 
+#define Retroceso 34
+#define Avance 35
+#define pinSubirBajar 36
+#define Start 37
+#define Presion_mas 38
+#define Presion_menos 39
 #define Bomba 40
 // Variable de final de carrera pistón hidráulico y Recorrido prefil
 // Cada uno de los estados de estas dos variables es definido por un switch mecánico
@@ -142,10 +147,10 @@ void setup()
   pinMode(Presion_mas, OUTPUT); // sets presion_mas as output
   digitalWrite(Presion_mas, LOW); // initilize in low state
   // Pin presion -
-  pinMode(Presion_menos, OUTPUT); // sets presion_menos as output
-  digitalWrite(Presion_menos, LOW); // initilize in low state
-  pinMode(Bomba, OUTPUT); // sets Bomba as output
-  digitalWrite(Bomba, LOW); // initialize in low state
+  pinMode(pinSubirBajar, OUTPUT); // sets pinSubirBajar as output
+  digitalWrite(pinSubirBajar, LOW); // initilize in low state
+  pinMode(Start, OUTPUT); // sets Bomba as output
+  digitalWrite(Start, LOW); // initialize in low state
   ClearLCDLeft = 0;
   ClearLCDRight = 0;
   PWMOn = 0;
@@ -165,7 +170,7 @@ void setup()
   /*
   digitalWrite(Bomba, LOW); //initialize in low state
   digitalWrite(Presion_mas,LOW);
-  digitalWrite(Presion_menos, LOW);
+  digitalWrite(pinSubirBajar, LOW);
   digitalWrite(Retroceso, LOW);
   */
 }
@@ -179,8 +184,8 @@ void loop()
   // Condición de búsqueda del cero en el movimiento vertical
   if (FinCarrera == 0)
   {
-    // digitalWrite(Bomba, HIGH); //initialize in low state
-    // digitalWrite(Presion_menos, HIGH);
+    // digitalWrite(Start, HIGH); //initialize in low state
+    // digitalWrite(pinSubirBajar, HIGH);
   }
   if (ClearLCDLeft || ClearLCDRight)
   {
@@ -262,6 +267,7 @@ void RutinaTiempo(bool beginRutina)
       banderaConteo = 1;
       contador = 0;
       _LeftEncoderTicks = 0;
+      digitalWrite(Start, HIGH);
     }
   }
 }
@@ -277,6 +283,7 @@ void bajarTickconTiempo(bool decicionsubir)
       if (contador > TiempoEncoder8cm)
       {
         banderaConteo = 0;
+        apagadoMotorBomba();
       }
     }
     else
@@ -286,6 +293,8 @@ void bajarTickconTiempo(bool decicionsubir)
       if (contador > TiempoEncoder8cm)
       {
         banderaConteo = 0;
+        apagadoMotorBomba();
+        
       }
     }
     // fin else
@@ -420,8 +429,8 @@ void ISRFinCarreraInterrupt()
     estado = digitalRead(19);
   if (estado)
   {
-    // digitalWrite(Bomba, LOW); //initialize in low state
-    // digitalWrite(Presion_menos, LOW);
+    // digitalWrite(Start, LOW); //initialize in low state
+    // digitalWrite(pinSubirBajar, LOW);
     FinCarrera = 1;
     _LeftEncoderTicks = 0;
     ClearLCDRight = !ClearLCDRight;
@@ -430,23 +439,24 @@ void ISRFinCarreraInterrupt()
 }
 
 void encendidoMotorBombaSubir()
-{
-  digitalWrite(Bomba, HIGH); // initialize in low state
-  digitalWrite(Presion_mas, HIGH);
-  digitalWrite(Avance, HIGH);
+{  
+  digitalWrite(pinSubirBajar, HIGH);
+  digitalWrite(Presion_mas,HIGH);  
+  digitalWrite(Bomba,HIGH); 
 }
 
 void encendidoMotorbajar()
-{
-  digitalWrite(Bomba, HIGH); // initialize in low state
-  digitalWrite(Presion_menos, HIGH);
-  digitalWrite(Avance, HIGH);
+{ 
+  digitalWrite(pinSubirBajar, LOW);
+  digitalWrite(Presion_menos,HIGH);
+  
 }
 
 void apagadoMotorBomba()
 {
-  digitalWrite(Bomba, LOW); // initialize in low state
-  digitalWrite(Presion_menos, LOW);
-  digitalWrite(Retroceso, LOW);
-  digitalWrite(Presion_mas, LOW);
+  digitalWrite(Start, LOW); // initialize in low state
+  digitalWrite(pinSubirBajar, LOW);
+  digitalWrite(Bomba,LOW);
+  digitalWrite(Presion_menos,LOW);  
+  digitalWrite(Presion_mas,LOW);
 }

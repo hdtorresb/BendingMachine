@@ -54,11 +54,11 @@ void comandosSerial(String datoEntrada ) {
     inputString = "";
   }
   if (datoEntrada == "test") {
-    digitalWrite(Bomba, HIGH); //initialize in low state
+    digitalWrite(Start, HIGH); //initialize in low state
     digitalWrite(Presion_mas, HIGH);
     delay(5000);
     digitalWrite(Presion_mas, LOW);
-    digitalWrite(Bomba, LOW); //initialize in low state
+    digitalWrite(Start, LOW); //initialize in low state
     lcd.clear();
     verticalmm = _LeftEncoderTicks * paso;
     lcd.setCursor(0, 0); lcd.print(verticalmm); lcd.print("mm");
