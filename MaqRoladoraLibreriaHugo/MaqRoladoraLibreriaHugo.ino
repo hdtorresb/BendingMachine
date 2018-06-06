@@ -201,7 +201,7 @@ void loop()
   if (ClearLCDLeft || ClearLCDRight)
   {
     lcd.clear();
-    verticalmm = _LeftEncoderTicks * paso;
+    verticalmm = TicksComparacion * paso;
     lcd.setCursor(0, 0);
     lcd.print(verticalmm);
     lcd.print("mm");
@@ -221,6 +221,8 @@ void loop()
   verticalmm=0;
   ClearLCDRight=1;
   _LeftEncoderTicks=0;
+  TicksComparacion=0;
+  TicksExtra=0;
   i=0;
   //digitalWrite(LedDebug, HIGH); // initilize in low state
   inputString="";
@@ -236,7 +238,9 @@ void loop()
     TicksExtra=0;
     verticalmm=0;
     ClearLCDRight=1;
-    _LeftEncoderTicks=0;    
+    _LeftEncoderTicks=0; 
+    TicksComparacion=0;
+    TicksExtra=0;   
     inputString = "";
   }
   RutinaTiempo(comenzar);
@@ -293,7 +297,7 @@ void RutinaTiempo(bool beginRutina)
       i++;
       banderaConteo = 1;
       contador = 0;
-     // _LeftEncoderTicks = 0;
+      _LeftEncoderTicks = 0;
       digitalWrite(Start, HIGH);
     }
   }
@@ -309,7 +313,7 @@ void bajarTickconTiempo(bool decicionsubir)
       encendidoMotorBombaSubir();
       if (contador > TiempoEncoder8cm)
       {
-        //verticalmm=(verticalmm+_LeftEncoderTicks)*paso;
+        
         banderaConteo = 0;
         apagadoMotorBomba();
       }
@@ -319,11 +323,9 @@ void bajarTickconTiempo(bool decicionsubir)
       Serial.print("Bajar");
       encendidoMotorbajar();
       if (contador > TiempoEncoder8cm)
-      {
-        //verticalmm=(verticalmm+_LeftEncoderTicks)*paso;
+      {        
         banderaConteo = 0;
-        apagadoMotorBomba();
-        
+        apagadoMotorBomba();        
       }
     }
     // fin else
@@ -372,7 +374,7 @@ void bajarTickEncoder(bool decicionsubir)
       encendidoMotorBombaSubir();
       if (abs(_LeftEncoderTicks) > 0)
       {
-        //verticalmm=(verticalmm+_LeftEncoderTicks)*paso;
+        
         apagadoMotorBomba(); // aseguramos que una vez se movio se apaga
         banderaConteo = 0;
         if (abs(_LeftEncoderTicks) >= 2)
@@ -386,8 +388,7 @@ void bajarTickEncoder(bool decicionsubir)
       Serial.print("Bajar");
       encendidoMotorbajar();
       if (abs(_LeftEncoderTicks) > 0)
-      {
-        //verticalmm=(verticalmm+_LeftEncoderTicks)*paso;
+      {        
         apagadoMotorBomba(); // aseguramos que una vez se movio se apaga
         banderaConteo = 0;
         // Vamos a ver cuantas ticks extra se contaron
@@ -420,16 +421,15 @@ void HandleLeftMotorInterruptA()
 
 #ifdef LeftEncoderIsReversed
     _LeftEncoderTicks -= _LeftEncoderBSet? -1:+ 1;
+    TicksComparacion -= _LeftEncoderBSet? -1:+ 1;
 #else
     _LeftEncoderTicks += _LeftEncoderBSet? -1:+ 1;
+    TicksComparacion += _LeftEncoderBSet? -1:+ 1;
 #endif
 
 
     ClearLCDLeft = !ClearLCDLeft;
-    if (_LeftEncoderTicks == -100)
-    {
-      prueba = LOW;
-    }
+
   }
 }
 
