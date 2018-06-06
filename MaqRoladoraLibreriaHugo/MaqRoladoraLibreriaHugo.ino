@@ -18,8 +18,9 @@ LiquidCrystal_I2C lcd(0x27, 20, 4);
 #define LeftEncoderIsReversed
 volatile bool _LeftEncoderBSet;
 volatile long _LeftEncoderTicks = 0;
+volatile long TicksComparacion=0;
 volatile float verticalmm;
-volatile float paso = 0.58222;
+volatile float paso = 0.4366;
 // Avance encoder
 #define c_RightEncoderInterrupt 1 // pin 3 arduino mega
 #define c_RightEncoderPinA 26
@@ -42,7 +43,7 @@ volatile int PWMwidthLow;
 #define Start 37
 #define Presion_mas 38
 #define Presion_menos 39
-#define Bomba 40
+#define Bomba 12
 // Variable de final de carrera pistón hidráulico y Recorrido prefil
 // Cada uno de los estados de estas dos variables es definido por un switch mecánico
 // El FinCarrera define el cero del encoder de presión + y presión -
@@ -83,6 +84,7 @@ unsigned int maxValueArray = 0;
 bool cambioRadio = 0;
 bool comenzar = 0;
 bool comenzarEncoder = 0;
+bool comenzarTiempo=0;
 int Radios[] =
 {
   1310, 1750, 2180, 2620, 3060, 3490, 3930, 4370, 4800, 5240, 5680, 6110,
@@ -92,6 +94,7 @@ int Radios[] =
 
 int diferenciasRadio = 0;
 volatile int TicksExtra = 0;
+#define LedDebug 47
 void setup()
 {
   Serial.begin(9600);
@@ -146,6 +149,14 @@ void setup()
   // Pin presion +
   pinMode(Presion_mas, OUTPUT); // sets presion_mas as output
   digitalWrite(Presion_mas, LOW); // initilize in low state
+
+    pinMode(LedDebug, OUTPUT); // sets presion_mas as output
+  digitalWrite(LedDebug, LOW); // initilize in low state
+
+   pinMode(Bomba, OUTPUT); // sets pinSubirBajar as output
+  digitalWrite(Bomba, LOW); // initilize in low state
+   pinMode(Presion_menos, OUTPUT); // sets pinSubirBajar as output
+  digitalWrite(Presion_menos, LOW); // initilize in low state
   // Pin presion -
   pinMode(pinSubirBajar, OUTPUT); // sets pinSubirBajar as output
   digitalWrite(pinSubirBajar, LOW); // initilize in low state
@@ -199,42 +210,58 @@ void loop()
     ClearLCDLeft = 0;
     ClearLCDRight = 0;
   }
-  /*
+  
   //Serial.println(banderaConteo);
   if(inputString=="rutinatiempo"){
   Serial.println("Comenzo Rutina");
   comenzar=1;
+  comenzarTiempo=1;
   contadorRutinatiempos=0;
   contador=0;
+  verticalmm=0;
+  ClearLCDRight=1;
+  _LeftEncoderTicks=0;
   i=0;
+  //digitalWrite(LedDebug, HIGH); // initilize in low state
   inputString="";
-  }
-  CambioSubidaBajada(i);
-  RutinaTiempo(comenzar);
-  bajarTickconTiempo(cambioRadio);
-  if (contadorRutinatiempos>maxValueArray){
-  contadorRutinatiempos=0;
-  comenzar=0;
-  Serial.println("Terminamos");
-  }
-  */
-  if (inputString == "rutinaEncoder")
-  {
-    comenzarEncoder = 1;
+  }  
+  
+  if (inputString == "rutinaencoder")
+  { Serial.println("RutinaEncoder");
+    comenzar= 1;
+    comenzarEncoder=1;
     i = 0;
     contadorRutinatiempos = 0;
     contador = 0;
     TicksExtra=0;
+    verticalmm=0;
+    ClearLCDRight=1;
+    _LeftEncoderTicks=0;    
     inputString = "";
   }
+  RutinaTiempo(comenzar);
+  CambioSubidaBajada(i);
+  if(comenzarEncoder){
+  bajarTickEncoder(cambioRadio);
+  }
+  if(comenzarTiempo){
+  bajarTickconTiempo(cambioRadio);
+  }
+  
   if (contadorRutinatiempos > maxValueArray)
   {
     contadorRutinatiempos = 0;
-    comenzarEncoder = 0;
+    comenzar = 0;
+    comenzarEncoder=0;
+    comenzarTiempo=0;
+    digitalWrite(LedDebug, LOW); // initilize in low state
     Serial.println("Terminamos");
     Serial.println(TicksExtra);
   }
-  CambioSubidaBajada(i);
+  if(comenzarEncoder==0 and comenzarTiempo==0 ){
+    apagadoMotorBomba();
+  }
+  
 }
 
 // fin loop
@@ -266,7 +293,7 @@ void RutinaTiempo(bool beginRutina)
       i++;
       banderaConteo = 1;
       contador = 0;
-      _LeftEncoderTicks = 0;
+     // _LeftEncoderTicks = 0;
       digitalWrite(Start, HIGH);
     }
   }
@@ -282,6 +309,7 @@ void bajarTickconTiempo(bool decicionsubir)
       encendidoMotorBombaSubir();
       if (contador > TiempoEncoder8cm)
       {
+        //verticalmm=(verticalmm+_LeftEncoderTicks)*paso;
         banderaConteo = 0;
         apagadoMotorBomba();
       }
@@ -292,6 +320,7 @@ void bajarTickconTiempo(bool decicionsubir)
       encendidoMotorbajar();
       if (contador > TiempoEncoder8cm)
       {
+        //verticalmm=(verticalmm+_LeftEncoderTicks)*paso;
         banderaConteo = 0;
         apagadoMotorBomba();
         
@@ -343,6 +372,7 @@ void bajarTickEncoder(bool decicionsubir)
       encendidoMotorBombaSubir();
       if (abs(_LeftEncoderTicks) > 0)
       {
+        //verticalmm=(verticalmm+_LeftEncoderTicks)*paso;
         apagadoMotorBomba(); // aseguramos que una vez se movio se apaga
         banderaConteo = 0;
         if (abs(_LeftEncoderTicks) >= 2)
@@ -357,6 +387,7 @@ void bajarTickEncoder(bool decicionsubir)
       encendidoMotorbajar();
       if (abs(_LeftEncoderTicks) > 0)
       {
+        //verticalmm=(verticalmm+_LeftEncoderTicks)*paso;
         apagadoMotorBomba(); // aseguramos que una vez se movio se apaga
         banderaConteo = 0;
         // Vamos a ver cuantas ticks extra se contaron
@@ -392,6 +423,7 @@ void HandleLeftMotorInterruptA()
 #else
     _LeftEncoderTicks += _LeftEncoderBSet? -1:+ 1;
 #endif
+
 
     ClearLCDLeft = !ClearLCDLeft;
     if (_LeftEncoderTicks == -100)
@@ -443,12 +475,15 @@ void encendidoMotorBombaSubir()
   digitalWrite(pinSubirBajar, HIGH);
   digitalWrite(Presion_mas,HIGH);  
   digitalWrite(Bomba,HIGH); 
+  digitalWrite(LedDebug, LOW); // initilize in low state
 }
 
 void encendidoMotorbajar()
 { 
+  digitalWrite(Bomba,HIGH); 
   digitalWrite(pinSubirBajar, LOW);
   digitalWrite(Presion_menos,HIGH);
+  digitalWrite(LedDebug, HIGH); // initilize in low state
   
 }
 

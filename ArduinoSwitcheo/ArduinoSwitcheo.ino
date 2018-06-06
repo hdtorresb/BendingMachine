@@ -1,5 +1,5 @@
-#define pinSubirBajar 2
-#define pinStart 3
+#define pinSubirBajar 36
+#define pinStart 37
 #define SalidaBomba 4
 #define SalidaSubir 5
 #define SalidaBajar 6
