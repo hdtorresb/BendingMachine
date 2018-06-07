@@ -17,6 +17,18 @@ void serialEvent() {
 
 
 void comandosSerial(String datoEntrada ) {
+
+  if(datoEntrada=="pwmon"){
+    PWMdebug=1;
+    inputString = "";
+
+  }
+
+  if(datoEntrada=="pwmoff"){
+    PWMdebug=0;
+    inputString = "";
+  }
+
   if (datoEntrada == "vel") {
     Timer1.start();
     Timer1.initialize(1000);          //El timer se dispara cada 1 ms

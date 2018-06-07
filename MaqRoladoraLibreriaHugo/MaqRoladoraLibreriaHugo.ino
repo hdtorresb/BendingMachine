@@ -20,7 +20,7 @@ volatile bool _LeftEncoderBSet;
 volatile long _LeftEncoderTicks = 0;
 volatile long TicksComparacion=0;
 volatile float verticalmm;
-volatile float paso = 0.4366;
+volatile float paso = 0.6550 ;
 // Avance encoder
 #define c_RightEncoderInterrupt 1 // pin 3 arduino mega
 #define c_RightEncoderPinA 26
@@ -44,6 +44,7 @@ volatile int PWMwidthLow;
 #define Presion_mas 38
 #define Presion_menos 39
 #define Bomba 12
+#define Bombadebug 11
 // Variable de final de carrera pistón hidráulico y Recorrido prefil
 // Cada uno de los estados de estas dos variables es definido por un switch mecánico
 // El FinCarrera define el cero del encoder de presión + y presión -
@@ -64,6 +65,7 @@ volatile int contador1 = 0; // contador para programar los tiempos de impresión
 volatile float vel;
 // debug
 #define debug 0
+#define PWM 0
 // # define debugtime 0
 // arreglos para diferentes perfiles
 // Variables para tiempos
@@ -83,8 +85,8 @@ volatile bool banderaConteo = 0;
 unsigned int maxValueArray = 0;
 bool cambioRadio = 0;
 bool comenzar = 0;
-bool comenzarEncoder = 0;
-bool comenzarTiempo=0;
+volatile bool comenzarEncoder = 0;
+volatile bool comenzarTiempo=0;
 int Radios[] =
 {
   1310, 1750, 2180, 2620, 3060, 3490, 3930, 4370, 4800, 5240, 5680, 6110,
@@ -95,6 +97,7 @@ int Radios[] =
 int diferenciasRadio = 0;
 volatile int TicksExtra = 0;
 #define LedDebug 47
+volatile bool PWMdebug=1;
 void setup()
 {
   Serial.begin(9600);
@@ -155,6 +158,8 @@ void setup()
 
    pinMode(Bomba, OUTPUT); // sets pinSubirBajar as output
   digitalWrite(Bomba, LOW); // initilize in low state
+     pinMode(Bombadebug, OUTPUT); // sets pinSubirBajar as output
+  digitalWrite(Bombadebug, LOW); // initilize in low state
    pinMode(Presion_menos, OUTPUT); // sets pinSubirBajar as output
   digitalWrite(Presion_menos, LOW); // initilize in low state
   // Pin presion -
@@ -183,12 +188,28 @@ void setup()
   digitalWrite(Presion_mas,LOW);
   digitalWrite(pinSubirBajar, LOW);
   digitalWrite(Retroceso, LOW);
-  */
+    */
+  PWMdebug=1;
 }
 
 void loop()
 {
   comandosSerial(inputString);
+  #if PWM
+  if(PWMdebug){
+  
+  digitalWrite(Bombadebug, HIGH);  
+  delay(500);
+    
+  digitalWrite(Bombadebug, LOW);
+  delay(500);
+  }
+  else{
+  digitalWrite(Bombadebug, LOW);
+  }
+  #endif
+  
+  
   // Esta rutina tiene como objetivo imponer ciclos de encendido de apagado de la valvula y la bomba durante dos segundos (1 segundo prendida y uno apagado), mostrarlos desplazamientos
   // después de cada ciclo
   // La rutina2 tiene como objetivo alternar ciclos de 3 y 1 segundos de encendido y apagado del pin de presión más, de igual manera, al final de cada ciclo se visualiza la distancia recorrida
@@ -201,7 +222,7 @@ void loop()
   if (ClearLCDLeft || ClearLCDRight)
   {
     lcd.clear();
-    verticalmm = TicksComparacion * paso;
+    verticalmm = _LeftEncoderTicks * paso;
     lcd.setCursor(0, 0);
     lcd.print(verticalmm);
     lcd.print("mm");
@@ -214,6 +235,7 @@ void loop()
   //Serial.println(banderaConteo);
   if(inputString=="rutinatiempo"){
   Serial.println("Comenzo Rutina");
+  PWMdebug=0;
   comenzar=1;
   comenzarTiempo=1;
   contadorRutinatiempos=0;
@@ -230,6 +252,7 @@ void loop()
   
   if (inputString == "rutinaencoder")
   { Serial.println("RutinaEncoder");
+    PWMdebug=0;
     comenzar= 1;
     comenzarEncoder=1;
     i = 0;
@@ -297,7 +320,9 @@ void RutinaTiempo(bool beginRutina)
       i++;
       banderaConteo = 1;
       contador = 0;
+      if(comenzarEncoder){
       _LeftEncoderTicks = 0;
+      }
       digitalWrite(Start, HIGH);
     }
   }
@@ -345,7 +370,7 @@ int Radios[]={1310, 1750, 2180, 2620, 3060, 3490, 3930, 4370, 4800, 5240, 5680, 
 */
 void CambioSubidaBajada(int posArreglo)
 {
-  if (posArreglo < sizeArray)
+  if (posArreglo <sizeArray)
   {
     diferenciasRadio = Radios[posArreglo + 1] - Radios[posArreglo];
     if (diferenciasRadio > 0)
@@ -360,7 +385,9 @@ void CambioSubidaBajada(int posArreglo)
   }
   else
   {
-    cambioRadio = 1;
+    comenzarEncoder=0;
+    cambioRadio = 0;
+    comenzarTiempo=0;
   }
 }
 
@@ -471,7 +498,7 @@ void ISRFinCarreraInterrupt()
 }
 
 void encendidoMotorBombaSubir()
-{  
+{ digitalWrite(Bombadebug, HIGH);   
   digitalWrite(pinSubirBajar, HIGH);
   digitalWrite(Presion_mas,HIGH);  
   digitalWrite(Bomba,HIGH); 
@@ -479,7 +506,7 @@ void encendidoMotorBombaSubir()
 }
 
 void encendidoMotorbajar()
-{ 
+{ digitalWrite(Bombadebug, HIGH);  
   digitalWrite(Bomba,HIGH); 
   digitalWrite(pinSubirBajar, LOW);
   digitalWrite(Presion_menos,HIGH);
@@ -489,6 +516,7 @@ void encendidoMotorbajar()
 
 void apagadoMotorBomba()
 {
+  digitalWrite(Bombadebug, LOW);  
   digitalWrite(Start, LOW); // initialize in low state
   digitalWrite(pinSubirBajar, LOW);
   digitalWrite(Bomba,LOW);
