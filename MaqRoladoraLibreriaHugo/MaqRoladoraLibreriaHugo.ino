@@ -98,14 +98,18 @@ int diferenciasRadio = 0;
 volatile int TicksExtra = 0;
 #define LedDebug 47
 volatile bool PWMdebug=1;
+volatile unsigned long dif=0;
+volatile unsigned long tiempoinicial=0;
+volatile bool noesruido=1;
+
 void setup()
 {
   Serial.begin(9600);
 
-#ifdef debug
-  Serial.println("Bienvenido");
-  Serial.println(sizeof(tiemposAcumulados) / (sizeof(tiemposAcumulados[0])));
-#endif
+  #ifdef debug
+    Serial.println("Bienvenido");
+    Serial.println(sizeof(tiemposAcumulados) / (sizeof(tiemposAcumulados[0])));
+  #endif
 
   // encontramos tamaño del arreglo y el mayor valor
   sizeArray = sizeof(tiemposAcumulados) / (sizeof(tiemposAcumulados[0]));
@@ -142,7 +146,7 @@ void setup()
   digitalWrite(c_RightEncoderPinA, LOW); // turn on pullup resistors
   pinMode(c_RightEncoderPinB, INPUT); // sets pin B as input
   digitalWrite(c_RightEncoderPinB, LOW); // turn on pullup resistors
-  attachInterrupt(c_RightEncoderInterrupt, HandleRightMotorInterruptA, RISING);
+  //attachInterrupt(c_RightEncoderInterrupt, HandleRightMotorInterruptA, RISING);
   // Pin retroceso
   pinMode(Retroceso, OUTPUT); // sets pin Retroceso as output
   digitalWrite(Retroceso, LOW); // initilize in low state
@@ -219,35 +223,24 @@ void loop()
     // digitalWrite(Start, HIGH); //initialize in low state
     // digitalWrite(pinSubirBajar, HIGH);
   }
-  if (ClearLCDLeft || ClearLCDRight)
-  {
-    lcd.clear();
-    verticalmm = _LeftEncoderTicks * paso;
-    lcd.setCursor(0, 0);
-    lcd.print(verticalmm);
-    lcd.print("mm");
-    lcd.setCursor(0, 1);
-    lcd.print(_RightEncoderTicks);
-    ClearLCDLeft = 0;
-    ClearLCDRight = 0;
-  }
+
   
   //Serial.println(banderaConteo);
   if(inputString=="rutinatiempo"){
-  Serial.println("Comenzo Rutina");
-  PWMdebug=0;
-  comenzar=1;
-  comenzarTiempo=1;
-  contadorRutinatiempos=0;
-  contador=0;
-  verticalmm=0;
-  ClearLCDRight=1;
-  _LeftEncoderTicks=0;
-  TicksComparacion=0;
-  TicksExtra=0;
-  i=0;
-  //digitalWrite(LedDebug, HIGH); // initilize in low state
-  inputString="";
+    Serial.println("Comenzo Rutina");
+    PWMdebug=0;
+    comenzar=1;
+    comenzarTiempo=1;
+    contadorRutinatiempos=0;
+    contador=0;
+    verticalmm=0;
+    ClearLCDRight=1;
+    _LeftEncoderTicks=0;
+    TicksComparacion=0;
+    TicksExtra=0;
+    i=0;
+    //digitalWrite(LedDebug, HIGH); // initilize in low state
+    inputString="";
   }  
   
   if (inputString == "rutinaencoder")
@@ -266,6 +259,19 @@ void loop()
     TicksExtra=0;   
     inputString = "";
   }
+  if (ClearLCDLeft || ClearLCDRight)
+  {
+    lcd.clear();
+    verticalmm = TicksComparacion * paso;
+    lcd.setCursor(0, 0);
+    lcd.print(verticalmm);
+    lcd.print("mm");
+    lcd.setCursor(0, 1);
+    lcd.print(_RightEncoderTicks);
+    ClearLCDLeft = 0;
+    ClearLCDRight = 0;
+  }
+
   RutinaTiempo(comenzar);
   CambioSubidaBajada(i);
   if(comenzarEncoder){
@@ -306,21 +312,22 @@ void RutinaTiempo(bool beginRutina)
   if (beginRutina)
   {
 
-#ifdef debugtime
-    Serial.print("Contador=");
-    Serial.println(contador);
-    Serial.print("contadorRutinatiempos=");
-    Serial.println(contadorRutinatiempos);
-    Serial.print("i=");
-    Serial.println(i);
-#endif
+  #ifdef debugtime
+      Serial.print("Contador=");
+      Serial.println(contador);
+      Serial.print("contadorRutinatiempos=");
+      Serial.println(contadorRutinatiempos);
+      Serial.print("i=");
+      Serial.println(i);
+  #endif
 
     if (contadorRutinatiempos > tiemposAcumulados[i] and i < sizeArray)
     {
       i++;
       banderaConteo = 1;
       contador = 0;
-      if(comenzarEncoder){
+      if(comenzarEncoder)
+      {
       _LeftEncoderTicks = 0;
       }
       digitalWrite(Start, HIGH);
@@ -400,8 +407,7 @@ void bajarTickEncoder(bool decicionsubir)
       Serial.print("Subir");
       encendidoMotorBombaSubir();
       if (abs(_LeftEncoderTicks) > 0)
-      {
-        
+      {        
         apagadoMotorBomba(); // aseguramos que una vez se movio se apaga
         banderaConteo = 0;
         if (abs(_LeftEncoderTicks) >= 2)
@@ -437,23 +443,34 @@ void bajarTickEncoder(bool decicionsubir)
 
 // Interrupt service routines for the left motor's quadrature encoder
 void HandleLeftMotorInterruptA()
-{
+{ 
+  _LeftEncoderBSet = digitalReadFast(c_LeftEncoderPinB); // read the input pin
+  
+  dif = millis() - tiempoinicial;
+  tiempoinicial=millis();
+
+  if(dif > 2){
+    noesruido=1;
+  }
+  else{
+    noesruido=0;
+  }
+
   // for (int i=0; i<2; i++)
-  estado = digitalRead(2);
-  if (estado)
+  //estado = digitalRead(2);
+  if (noesruido)
   {
     // Test transition; since the interrupt will only fire on 'rising' we don't need to read pin A
-    _LeftEncoderBSet = digitalReadFast(c_LeftEncoderPinB); // read the input pin
+    //_LeftEncoderBSet = digitalReadFast(c_LeftEncoderPinB); // read the input pin
     // and adjust counter + if A leads B
 
-#ifdef LeftEncoderIsReversed
-    _LeftEncoderTicks -= _LeftEncoderBSet ? -1: +1;
-    //TicksComparacion -= _LeftEncoderBSet? -1:+ 1;
-#else
-    _LeftEncoderTicks += _LeftEncoderBSet ? -1: +1;
-    //TicksComparacion += _LeftEncoderBSet? -1:+ 1;
-#endif
-
+  #ifdef LeftEncoderIsReversed
+      _LeftEncoderTicks -= _LeftEncoderBSet ? -1: +1;
+      TicksComparacion -= _LeftEncoderBSet? -1:+ 1;
+  #else
+      _LeftEncoderTicks += _LeftEncoderBSet ? -1: +1;
+      TicksComparacion += _LeftEncoderBSet? -1:+ 1;
+  #endif
 
     ClearLCDLeft = !ClearLCDLeft;
 
@@ -471,11 +488,11 @@ void HandleRightMotorInterruptA()
     _RightEncoderBSet = digitalReadFast(c_RightEncoderPinB); // read the input pin
     // and adjust counter + if A leads B
 
-#ifdef RightEncoderIsReversed
-    _RightEncoderTicks -= _RightEncoderBSet? -1:+ 1;
-#else
-    _RightEncoderTicks += _RightEncoderBSet? -1:+ 1;
-#endif
+    #ifdef RightEncoderIsReversed
+        _RightEncoderTicks -= _RightEncoderBSet? -1:+ 1;
+    #else
+        _RightEncoderTicks += _RightEncoderBSet? -1:+ 1;
+    #endif
 
     ClearLCDRight = !ClearLCDRight;
   }
