@@ -13,8 +13,8 @@ LiquidCrystal_I2C lcd(0x27, 20, 4);
 // Quadrature encoders
 // Presión encoder
 #define c_LeftEncoderInterrupt 0 // pin 2 arduino mega
-#define c_LeftEncoderPinA 24
-#define c_LeftEncoderPinB 25
+#define c_LeftEncoderPinA 6
+#define c_LeftEncoderPinB 4
 #define LeftEncoderIsReversed
 volatile bool _LeftEncoderBSet;
 volatile long _LeftEncoderTicks = 0;
@@ -447,11 +447,11 @@ void HandleLeftMotorInterruptA()
     // and adjust counter + if A leads B
 
 #ifdef LeftEncoderIsReversed
-    _LeftEncoderTicks -= _LeftEncoderBSet? -1:+ 1;
-    TicksComparacion -= _LeftEncoderBSet? -1:+ 1;
+    _LeftEncoderTicks -= _LeftEncoderBSet ? -1: +1;
+    //TicksComparacion -= _LeftEncoderBSet? -1:+ 1;
 #else
-    _LeftEncoderTicks += _LeftEncoderBSet? -1:+ 1;
-    TicksComparacion += _LeftEncoderBSet? -1:+ 1;
+    _LeftEncoderTicks += _LeftEncoderBSet ? -1: +1;
+    //TicksComparacion += _LeftEncoderBSet? -1:+ 1;
 #endif
 
 
