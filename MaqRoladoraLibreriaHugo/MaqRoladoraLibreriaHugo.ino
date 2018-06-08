@@ -73,6 +73,32 @@ volatile float vel;
 volatile unsigned int i = 0;
 unsigned int sizeArray = 0;
 // Arreglos tiempo acumulados en ms
+/*
+Longitud de arco=3 a=2
+tiempos
+{  0,  450, 1320, 2550, 7640, 8910, 9790}
+posicion 
+{0,        0,6550236 1,3100472 1,9650708 1,3100472 0,6550236 0 }
+
+Longitud de arco=3 a=1,85
+tiempos
+{  0,  900, 1750, 2970, 6860, 8100, 8970}
+possicion 
+{0,        0,6550236 1,3100472 1,9650708 1,3100472 0,6550236 0} 
+
+Longitud de arco=3 a=1.7
+tiempos
+{   0,  470, 1360, 2210, 3410, 6520, 7750, 8620, 9540}  
+posicion 
+{0,        0,6550236 1,3100472 1,9650708 2,6200944 1,9650708 1,3100472, 0,6550236 0, } 
+
+Longitud de arco=3 a=2.1
+tiempos
+{   0,  440, 1720, 3320, 6810, 8440, 9740}
+posicion 
+{0.        0.6550236 1.3100472 1.9650708 1.3100472 0.6550236 0}
+
+*/
 int tiemposAcumulados[] =
 {
   0, 2540, 4768, 6105, 7339, 8483, 9547, 10544, 11019, 11932,
@@ -101,6 +127,8 @@ volatile bool PWMdebug=1;
 volatile unsigned long dif=0;
 volatile unsigned long tiempoinicial=0;
 volatile bool noesruido=1;
+unsigned int contadorPWM=0;
+unsigned int dutty=500;
 
 void setup()
 {
@@ -195,19 +223,10 @@ void setup()
 void loop()
 {
   comandosSerial(inputString);
-  #if PWM
-  if(PWMdebug){
-  
-  digitalWrite(Bombadebug, HIGH);  
-  delay(500);
-    
-  digitalWrite(Bombadebug, LOW);
-  delay(500);
-  }
-  else{
-  digitalWrite(Bombadebug, LOW);
-  }
-  #endif
+
+ 
+
+
  
   
   //Serial.println(banderaConteo);
@@ -277,14 +296,24 @@ void loop()
   if(comenzarEncoder==0 and comenzarTiempo==0 ){
     apagadoMotorBomba();
   }
+  /*
+    if(contadorPWM<dutty){  
+  digitalWrite(Bombadebug, HIGH);
+  else{
+    digitalWrite(Bombadebug, LOW);
+  }  
+  if(contadorPWM>(dutty*2)){
+    contadorPWM=0;
+  } 
+  */
   
-}
+}// fin loop
 
-// fin loop
 void ISR_Tiempo() // funcion de interrupcion por timer
 {
   contadorRutinatiempos++;
   contador++;
+  //contadorPWM++;
 }
 
 /*Arreglo a usar tiemposAcumulados[]={    0,  2540,  4768,  6105,  7339,  8483,  9547, 10544, 11019, 11932,
