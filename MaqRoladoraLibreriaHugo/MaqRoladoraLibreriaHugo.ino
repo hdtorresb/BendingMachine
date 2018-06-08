@@ -141,12 +141,8 @@ void setup()
   pinMode(c_LeftEncoderPinB, INPUT); // sets pin B as input
   digitalWrite(c_LeftEncoderPinB, LOW); // turn on pullup resistors
   attachInterrupt(c_LeftEncoderInterrupt, HandleLeftMotorInterruptA, RISING);
-  // Right encoder
-  pinMode(c_RightEncoderPinA, INPUT); // sets pin A as input
-  digitalWrite(c_RightEncoderPinA, LOW); // turn on pullup resistors
-  pinMode(c_RightEncoderPinB, INPUT); // sets pin B as input
-  digitalWrite(c_RightEncoderPinB, LOW); // turn on pullup resistors
-  //attachInterrupt(c_RightEncoderInterrupt, HandleRightMotorInterruptA, RISING);
+
+
   // Pin retroceso
   pinMode(Retroceso, OUTPUT); // sets pin Retroceso as output
   digitalWrite(Retroceso, LOW); // initilize in low state
@@ -477,26 +473,6 @@ void HandleLeftMotorInterruptA()
   }
 }
 
-// Interrupt service routines for the right motor's quadrature encoder
-void HandleRightMotorInterruptA()
-{
-  // for (int i=0; i<1; i++)
-  estado = digitalRead(3);
-  if (estado)
-  {
-    // Test transition; since the interrupt will only fire on 'rising' we don't need to read pin A
-    _RightEncoderBSet = digitalReadFast(c_RightEncoderPinB); // read the input pin
-    // and adjust counter + if A leads B
-
-    #ifdef RightEncoderIsReversed
-        _RightEncoderTicks -= _RightEncoderBSet? -1:+ 1;
-    #else
-        _RightEncoderTicks += _RightEncoderBSet? -1:+ 1;
-    #endif
-
-    ClearLCDRight = !ClearLCDRight;
-  }
-}
 
 // Interrupt service fot set zero of the presure piston encoder
 void ISRFinCarreraInterrupt()
