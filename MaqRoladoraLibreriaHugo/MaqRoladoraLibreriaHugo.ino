@@ -266,9 +266,9 @@ void loop()
     ClearLCDLeft = 0;
     ClearLCDRight = 0;
   }
-
-  RutinaTiempo(comenzar);
   CambioSubidaBajada(i);
+  RutinaTiempo(comenzar);
+  
   if(comenzarEncoder){
   bajarTickEncoder(cambioRadio);
   }
@@ -326,8 +326,12 @@ void RutinaTiempo(bool beginRutina)
       Serial.println(i);
   #endif
 
-    if (contadorRutinatiempos > tiemposAcumulados[i] and i < sizeArray)
-    {
+    if (contadorRutinatiempos > tiemposAcumulados[i] and i <= sizeArray)
+    { Serial.print("i= ");
+      Serial.println(i);
+      Serial.print("TiempoActual= ");
+      Serial.println(tiemposAcumulados[i]);
+
       i++;
       banderaConteo = 1;
       contador = 0;
@@ -346,10 +350,11 @@ void bajarTickconTiempo(bool decicionsubir)
   {
     if (decicionsubir)
     {
-      Serial.print("Subir");
+      
       encendidoMotorBombaSubir();
       if (contador > TiempoEncoder8cm)
       {
+        Serial.println("Subir");
         
         banderaConteo = 0;
         apagadoMotorBomba();
@@ -357,10 +362,11 @@ void bajarTickconTiempo(bool decicionsubir)
     }
     else
     {
-      Serial.print("Bajar");
+      
       encendidoMotorbajar();
       if (contador > TiempoEncoder8cm)
-      {        
+      {  
+        Serial.println("Bajar");      
         banderaConteo = 0;
         apagadoMotorBomba();        
       }
@@ -382,7 +388,7 @@ int Radios[]={1310, 1750, 2180, 2620, 3060, 3490, 3930, 4370, 4800, 5240, 5680, 
 */
 void CambioSubidaBajada(int posArreglo)
 {
-  if (posArreglo <sizeArray)
+  if (posArreglo <(sizeArray-1))
   {
     diferenciasRadio = Radios[posArreglo + 1] - Radios[posArreglo];
     if (diferenciasRadio > 0)
@@ -397,9 +403,10 @@ void CambioSubidaBajada(int posArreglo)
   }
   else
   {
-    comenzarEncoder=0;
-    cambioRadio = 0;
-    comenzarTiempo=0;
+    //Serial.println("desbordado");
+    //comenzarEncoder=0;
+    cambioRadio = 1;
+    //comenzarTiempo=0;
   }
 }
 
@@ -409,10 +416,10 @@ void bajarTickEncoder(bool decicionsubir)
   {
     if (decicionsubir)
     {
-      Serial.print("Subir");
+      
       encendidoMotorBombaSubir();
       if (abs(_LeftEncoderTicks) > 0)
-      {        
+      {  Serial.print("Subir");      
         apagadoMotorBomba(); // aseguramos que una vez se movio se apaga
         banderaConteo = 0;
         if (abs(_LeftEncoderTicks) >= 2)
@@ -423,10 +430,11 @@ void bajarTickEncoder(bool decicionsubir)
     }
     else
     {
-      Serial.print("Bajar");
+      
       encendidoMotorbajar();
       if (abs(_LeftEncoderTicks) > 0)
-      {        
+      {
+        Serial.print("Bajar");        
         apagadoMotorBomba(); // aseguramos que una vez se movio se apaga
         banderaConteo = 0;
         // Vamos a ver cuantas ticks extra se contaron
