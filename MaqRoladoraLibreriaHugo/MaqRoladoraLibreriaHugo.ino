@@ -222,14 +222,8 @@ void setup()
 
 void loop()
 {
-  comandosSerial(inputString);
-
+  comandosSerial(inputString);  
  
-
-
- 
-  
-  //Serial.println(banderaConteo);
   if(inputString=="rutinatiempo"){
     Serial.println("Comenzo Rutina");
     PWMdebug=0;
@@ -242,8 +236,7 @@ void loop()
     _LeftEncoderTicks=0;
     TicksComparacion=0;
     TicksExtra=0;
-    i=0;
-    //digitalWrite(LedDebug, HIGH); // initilize in low state
+    i=0;    
     inputString="";
   }  
   
@@ -509,7 +502,6 @@ void encendidoMotorbajar()
 
 void apagadoMotorBomba()
 {
-  digitalWrite(Bombadebug, LOW);  
   digitalWrite(Start, LOW); // initialize in low state
   digitalWrite(pinSubirBajar, LOW);
   digitalWrite(Bomba,LOW);
