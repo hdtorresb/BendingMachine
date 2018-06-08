@@ -208,18 +208,7 @@ void loop()
   digitalWrite(Bombadebug, LOW);
   }
   #endif
-  
-  
-  // Esta rutina tiene como objetivo imponer ciclos de encendido de apagado de la valvula y la bomba durante dos segundos (1 segundo prendida y uno apagado), mostrarlos desplazamientos
-  // después de cada ciclo
-  // La rutina2 tiene como objetivo alternar ciclos de 3 y 1 segundos de encendido y apagado del pin de presión más, de igual manera, al final de cada ciclo se visualiza la distancia recorrida
-  // Condición de búsqueda del cero en el movimiento vertical
-  if (FinCarrera == 0)
-  {
-    // digitalWrite(Start, HIGH); //initialize in low state
-    // digitalWrite(pinSubirBajar, HIGH);
-  }
-
+ 
   
   //Serial.println(banderaConteo);
   if(inputString=="rutinatiempo"){
@@ -262,8 +251,6 @@ void loop()
     lcd.setCursor(0, 0);
     lcd.print(verticalmm);
     lcd.print("mm");
-    lcd.setCursor(0, 1);
-    lcd.print(_RightEncoderTicks);
     ClearLCDLeft = 0;
     ClearLCDRight = 0;
   }
@@ -473,22 +460,6 @@ void HandleLeftMotorInterruptA()
   }
 }
 
-
-// Interrupt service fot set zero of the presure piston encoder
-void ISRFinCarreraInterrupt()
-{
-  for (int i = 0; i < 10; i++)
-    estado = digitalRead(19);
-  if (estado)
-  {
-    // digitalWrite(Start, LOW); //initialize in low state
-    // digitalWrite(pinSubirBajar, LOW);
-    FinCarrera = 1;
-    _LeftEncoderTicks = 0;
-    ClearLCDRight = !ClearLCDRight;
-    ClearLCDLeft = !ClearLCDLeft;
-  }
-}
 
 void encendidoMotorBombaSubir()
 { digitalWrite(Bombadebug, HIGH);   
