@@ -37,14 +37,14 @@ volatile int PWMwidthLow;
 // Presion -
 
 //pines comunicacion y bombas 
-#define Retroceso 34
-#define Avance 35
+#define Retroceso 35
+#define Avance 38
 #define pinSubirBajar 36
 #define Start 37
-#define Presion_mas 38
-#define Presion_menos 39
-#define Bomba 12
-#define Bombadebug 11
+#define Presion_mas 40
+#define Presion_menos 41
+#define Bomba 39
+#define Bombadebug 12
 // Variable de final de carrera pistón hidráulico y Recorrido prefil
 // Cada uno de los estados de estas dos variables es definido por un switch mecánico
 // El FinCarrera define el cero del encoder de presión + y presión -
