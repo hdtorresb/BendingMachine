@@ -4,7 +4,8 @@
 #include "Arduino.h"
 #include <digitalWriteFast.h> // library for high performance reads and writes by jrraines
 #include <math.h>
-// see http://www.arduino.cc/cgi-bin/yabb2/YaBB.pl?num=1267553811/0
+#include <avr/wdt.h>  
+
 // and http://code.google.com/p/digitalwritefast/
 // It turns out that the regular digitalRead() calls are too slow and bring the arduino down when
 // I use them in the interrupt routines while the motor runs at full speed creating more than
@@ -12,8 +13,7 @@
 LiquidCrystal_I2C lcd(0x27, 20, 4);
 // Quadrature encoders
 // Presión encoder
-#define c_LeftEncoderInterrupt 0 // pin 2 arduino mega
-#define c_LeftEncoderPinA 6
+#define c_LeftEncoderInterrupt 1 // pin 3 arduino mega
 #define c_LeftEncoderPinB 4
 #define LeftEncoderIsReversed
 volatile bool _LeftEncoderBSet;
@@ -21,12 +21,8 @@ volatile long _LeftEncoderTicks = 0;
 volatile long TicksComparacion=0;
 volatile float verticalmm;
 volatile float paso = 0.6550 ;
-// Avance encoder
-#define c_RightEncoderInterrupt 1 // pin 3 arduino mega
-#define c_RightEncoderPinA 26
-#define c_RightEncoderPinB 27
-volatile bool _RightEncoderBSet;
-volatile long _RightEncoderTicks = 0;
+
+
 // Funciones del sistema
 // Pin retroceso
 
@@ -41,8 +37,8 @@ volatile int PWMwidthLow;
 #define Avance 38
 #define pinSubirBajar 36
 #define Start 37
-#define Presion_mas 40
-#define Presion_menos 41
+#define Presion_mas 41
+#define Presion_menos 40
 #define Bomba 39
 #define Bombadebug 12
 // Variable de final de carrera pistón hidráulico y Recorrido prefil
@@ -69,43 +65,41 @@ volatile float vel;
 // # define debugtime 0
 // arreglos para diferentes perfiles
 // Variables para tiempos
-#define TiempoEncoder8cm 44 // 44 milisegundos
+#define TiempoEncoder8cm 200 // 44 milisegundos
 volatile unsigned int i = 0;
 unsigned int sizeArray = 0;
 // Arreglos tiempo acumulados en ms
 /*
 Longitud de arco=3 a=2
 tiempos
-{  0,  450, 1320, 2550, 7640, 8910, 9790}
+{   0,  450, 1320, 4510, 5670, 8910, 9790}
 posicion 
-{0,        0,6550236 1,3100472 1,9650708 1,3100472 0,6550236 0 }
+{   0,  655, 1310, 1965, 1310,  655,    0}
 
 Longitud de arco=3 a=1,85
 tiempos
-{  0,  900, 1750, 2970, 6860, 8100, 8970}
+{  0,  900, 1750, 4520, 5290, 8100, 8970}
 possicion 
-{0,        0,6550236 1,3100472 1,9650708 1,3100472 0,6550236 0} 
+{   0,  655, 1310, 1965, 1310,  655,    0}
 
 Longitud de arco=3 a=1.7
 tiempos
-{   0,  470, 1360, 2210, 3410, 6520, 7750, 8620, 9540}  
+{  0,  470, 1360, 2210, 4580, 5350, 7750, 8620, 9540}
 posicion 
-{0,        0,6550236 1,3100472 1,9650708 2,6200944 1,9650708 1,3100472, 0,6550236 0, } 
+{ 0,  655, 1310, 1965, 2620, 1965, 1310,  655,    0}
 
 Longitud de arco=3 a=2.1
 tiempos
-{   0,  440, 1720, 3320, 6810, 8440, 9740}
+{   0,  440, 1720, 4490, 5640, 8440, 9740}
 posicion 
-{0.        0.6550236 1.3100472 1.9650708 1.3100472 0.6550236 0}
+{ 0,  655, 1310, 1965, 1310,  655,    0}
 
 */
-int tiemposAcumulados[] =
-{
-  0, 2540, 4768, 6105, 7339, 8483, 9547, 10544, 11019, 11932,
-  12800, 13631, 14436, 15994, 17150, 18722, 19539, 20387, 21276, 22214,
-  22705, 23734, 24837, 26024, 27308, 28702, 31028
-};
-
+//a=3
+//Luz = 8 metros 
+//int tiemposAcumulados[] ={   0,  5000, 10000, 20000, 30000, 40000, 50000};
+int tiemposAcumulados[] ={  0,  2283,  4566,  8741, 11757, 14396, 17292, 23479, 26378, 29022, 32045, 36231, 38514};
+int Radios[] ={ 655, 1310, 1965, 2620, 3275, 3930, 4585, 3930, 3275, 2620, 1965, 1310,  655};
 volatile unsigned int contadorRutinatiempos = 0;
 volatile bool banderaConteo = 0;
 unsigned int maxValueArray = 0;
@@ -113,12 +107,7 @@ bool cambioRadio = 0;
 bool comenzar = 0;
 volatile bool comenzarEncoder = 0;
 volatile bool comenzarTiempo=0;
-int Radios[] =
-{
-  1310, 1750, 2180, 2620, 3060, 3490, 3930, 4370, 4800, 5240, 5680, 6110,
-  6550, 6990, 6550, 6110, 5680, 5240, 4800, 4370, 3930, 3490, 3060, 2620,
-  2180, 1750, 1310,
-};
+
 
 int diferenciasRadio = 0;
 volatile int TicksExtra = 0;
@@ -150,6 +139,8 @@ void setup()
     }
   }
   Serial.println(maxValueArray);
+    wdt_disable();                       // deshabilito el perro guardian
+  wdt_enable (WDTO_8S); 
   i = 0;
   Timer1.initialize(1000); // El timer se dispara cada 1 ms
   Timer1.attachInterrupt(ISR_Tiempo); // activacion de la interrupcion por timer
@@ -160,12 +151,9 @@ void setup()
   inputString.reserve(200);
   PWMwidthHigh = 500;
   PWMwidthLow = 500;
-  // _RightServo.attach(2);  // attaches the servo on specified pin to the servo object
-  // _LeftServo.attach(3);  // attaches the servo on specified pin to the servo object
-  // Quadrature encoders
+
   // Left encoder
-  pinMode(c_LeftEncoderPinA, INPUT); // sets pin A as input
-  digitalWrite(c_LeftEncoderPinA, LOW); // turn on pullup resistors
+
   pinMode(c_LeftEncoderPinB, INPUT); // sets pin B as input
   digitalWrite(c_LeftEncoderPinB, LOW); // turn on pullup resistors
   attachInterrupt(c_LeftEncoderInterrupt, HandleLeftMotorInterruptA, RISING);
@@ -209,7 +197,7 @@ void setup()
   lcd.print(verticalmm);
   lcd.print("mm");
   lcd.setCursor(0, 1);
-  lcd.print(_RightEncoderTicks);
+  lcd.print("h");
   // lcd.setCursor(0, 0); lcd.print("hugo perra");
   /*
   digitalWrite(Bomba, LOW); //initialize in low state
@@ -218,6 +206,8 @@ void setup()
   digitalWrite(Retroceso, LOW);
     */
   PWMdebug=1;
+  //inputString="rutinatiempo";
+  //inputString= "rutinaencoder";
 }
 
 void loop()
@@ -266,7 +256,7 @@ void loop()
     ClearLCDLeft = 0;
     ClearLCDRight = 0;
   }
-  CambioSubidaBajada(i);
+  
   RutinaTiempo(comenzar);
   
   if(comenzarEncoder){
@@ -284,7 +274,15 @@ void loop()
     comenzarTiempo=0;
     digitalWrite(LedDebug, LOW); // initilize in low state
     Serial.println("Terminamos");
-    Serial.println(TicksExtra);
+    Serial.println(TicksExtra);    
+  apagadoMotorBomba(); 
+  //inputString="rutinatiempo"; 
+  //inputString= "rutinaencoder";
+  lcd.clear();  
+  lcd.setCursor(0, 0);
+  lcd.print("acabo");
+  delay(2000);
+    
   }
   if(comenzarEncoder==0 and comenzarTiempo==0 ){
     apagadoMotorBomba();
@@ -299,7 +297,7 @@ void loop()
     contadorPWM=0;
   } 
   */
-  
+  wdt_reset();
 }// fin loop
 
 void ISR_Tiempo() // funcion de interrupcion por timer
@@ -327,11 +325,12 @@ void RutinaTiempo(bool beginRutina)
   #endif
 
     if (contadorRutinatiempos > tiemposAcumulados[i] and i <= sizeArray)
-    { Serial.print("i= ");
+    { CambioSubidaBajada(i);
+      Serial.print("i= ");
       Serial.println(i);
       Serial.print("TiempoActual= ");
       Serial.println(tiemposAcumulados[i]);
-
+      
       i++;
       banderaConteo = 1;
       contador = 0;
@@ -389,8 +388,13 @@ int Radios[]={1310, 1750, 2180, 2620, 3060, 3490, 3930, 4370, 4800, 5240, 5680, 
 void CambioSubidaBajada(int posArreglo)
 {
   if (posArreglo <(sizeArray-1))
-  {
-    diferenciasRadio = Radios[posArreglo + 1] - Radios[posArreglo];
+  { Serial.print("diferenciasRadio=");
+    Serial.print(Radios[posArreglo + 1]);
+    Serial.print("-");
+    Serial.print(Radios[posArreglo]);
+    Serial.print("=");    
+    diferenciasRadio = Radios[posArreglo + 1] - Radios[posArreglo]; 
+    Serial.println(diferenciasRadio);  
     if (diferenciasRadio > 0)
     {
       cambioRadio = 0;
@@ -466,7 +470,7 @@ void HandleLeftMotorInterruptA()
     noesruido=1;
   }
   else{
-    noesruido=0;
+    noesruido=0;    
   }
 
   // for (int i=0; i<2; i++)

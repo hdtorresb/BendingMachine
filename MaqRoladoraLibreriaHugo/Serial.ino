@@ -65,16 +65,5 @@ void comandosSerial(String datoEntrada ) {
     Serial.print ("\n\r");
     inputString = "";
   }
-  if (datoEntrada == "test") {
-    digitalWrite(Start, HIGH); //initialize in low state
-    digitalWrite(Presion_mas, HIGH);
-    delay(5000);
-    digitalWrite(Presion_mas, LOW);
-    digitalWrite(Start, LOW); //initialize in low state
-    lcd.clear();
-    verticalmm = _LeftEncoderTicks * paso;
-    lcd.setCursor(0, 0); lcd.print(verticalmm); lcd.print("mm");
-    lcd.setCursor(0, 1); lcd.print(_RightEncoderTicks);
-    inputString = "";
-  }
+
 }
