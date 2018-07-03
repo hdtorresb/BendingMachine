@@ -19,20 +19,6 @@ void serialEvent()
   }
 }
 
-void comandosSerial(String datoEntrada)
-{
-  if (datoEntrada == "pwmon")
-  {
-    PWMdebug = 1;
-    inputString = "";
-  }
-  if (datoEntrada == "pwmoff")
-  {
-    PWMdebug = 0;
-    inputString = "";
-  }
-}
-
 void mensajeBienvenida()
 {
   lcd.begin();
