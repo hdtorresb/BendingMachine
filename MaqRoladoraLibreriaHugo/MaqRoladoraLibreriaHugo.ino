@@ -27,7 +27,6 @@ volatile float paso = 0.6550;
 #define Retroceso 41
 #define Bomba 42
 #define Presion_mas 45
-#define inhabilitar 44
 
 //variables comunicacion Serial y LCD
 volatile bool ClearLCDLeft;
@@ -36,12 +35,11 @@ boolean stringComplete = false; // whether the string is complete
 char inChar;
 volatile bool LCDenrutina=0;
 
-volatile boolean estado = LOW;
-volatile boolean prueba = HIGH;
 // Contadores
 volatile long contador = 0; // contador propio del timer uno para las rutinas de rolado de las catenarias
 volatile unsigned int contadorRutinatiempos = 0;
 volatile unsigned int contadorMotorAvance = 0;
+unsigned int tiempoStopMotorAvance = 0;
 // debug
 #define debug 0
 #define PWM 0
@@ -49,15 +47,10 @@ volatile unsigned int contadorMotorAvance = 0;
 // Variables arreglos
 volatile unsigned int i = 0;
 unsigned int sizeArray = 0;
-unsigned int tiemposAcumulados[] =
-{
-  0, 4950, 9070, 12090, 14780, 17650, 23480, 26380, 29120, 32210, 36430
-};
-
-int Radios[] =
-{
-  0, 655, 1310, 1965, 2620, 3275, 2620, 1965, 1310, 655, 0
-};
+//unsigned int tiemposAcumulados[] ={ 0,   772,  1544,  2316,  3088,  5588,  7565,  9227, 10677, 12044, 13292, 14526, 15792, 17292, 23479, 24981, 26249, 27485, 28736, 30104, 31558, 33224, 35206, 37713, 38485, 40029, 42345};
+//int Radios[] ={314,  628,  942, 1257, 1571, 1885, 2199, 2513, 2827, 3142, 3456, 3770, 4084, 4398, 4084, 3770, 3456, 3142, 2827, 2513, 2199, 1885, 1571, 1257,  942,  628,  314};
+unsigned int tiemposAcumulados[] ={ 0, 4950, 9070, 12090, 14780, 17650, 23480, 26380, 29120, 32210, 36430};
+int Radios[] ={  0, 655, 1310, 1965, 2620, 3275, 2620, 1965, 1310, 655, 0};
 
 unsigned int maxValueArray = 0;
 // Variables Rutinas
@@ -71,7 +64,7 @@ volatile int TicksExtra = 0;
 volatile unsigned long dif = 0;
 volatile unsigned long tiempoinicial = 0;
 volatile bool noesruido = 1;
-unsigned int tiempoStopMotorAvance = 0;
+
 #define EncoderFlat
 #define StartButtonPin 0 // En este caso interrupcion 0 asigando a pin 2
 bool StartEncoderRoutine = 0;
@@ -181,10 +174,6 @@ void loop()
     FlatRutinaenCurso = 1;
     contadorMotorAvance = 0;
     LCDenrutina=0;
-  }
-  if (comenzarEncoder == 0)
-  {
-    apagadoMotorBomba();
   }
   wdt_reset();
 }
