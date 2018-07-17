@@ -153,7 +153,7 @@ void loop()
     digitalWrite(Avance, HIGH); // Start moving motor on horizontal axis
   }
   clearLCD();
-  if(comenzar){
+  if(comenzarEncoder){
  CambioSubidaBajada(i);
 }
   RutinaTiempo(comenzar);
