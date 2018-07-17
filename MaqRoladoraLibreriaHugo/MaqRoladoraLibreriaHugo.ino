@@ -153,6 +153,9 @@ void loop()
     digitalWrite(Avance, HIGH); // Start moving motor on horizontal axis
   }
   clearLCD();
+  if(comenzar){
+ CambioSubidaBajada(i);
+}
   RutinaTiempo(comenzar);
   if (comenzarEncoder)
   {
@@ -258,6 +261,7 @@ void bajarTickEncoder(bool decicionsubir)
       encendidoMotorBombaSubir();
       if (abs(_LeftEncoderTicks) > 0)
       {
+        _LeftEncoderTicks = 0;
         Serial.print("Subir");
         apagadoMotorBomba(); // aseguramos que una vez se movio se apaga
         banderaConteo = 0;
