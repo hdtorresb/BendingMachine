@@ -47,10 +47,10 @@ unsigned int tiempoStopMotorAvance = 0;
 // Variables arreglos
 volatile unsigned int i = 0;
 unsigned int sizeArray = 0;
-//unsigned int tiemposAcumulados[] ={ 0,   772,  1544,  2316,  3088,  5588,  7565,  9227, 10677, 12044, 13292, 14526, 15792, 17292, 23479, 24981, 26249, 27485, 28736, 30104, 31558, 33224, 35206, 37713, 38485, 40029, 42345};
-//int Radios[] ={314,  628,  942, 1257, 1571, 1885, 2199, 2513, 2827, 3142, 3456, 3770, 4084, 4398, 4084, 3770, 3456, 3142, 2827, 2513, 2199, 1885, 1571, 1257,  942,  628,  314};
-unsigned int tiemposAcumulados[] ={ 0, 4950, 9070, 12090, 14780, 17650, 23480, 26380, 29120, 32210, 36430};
-int Radios[] ={  0, 655, 1310, 1965, 2620, 3275, 2620, 1965, 1310, 655, 0};
+unsigned int tiemposAcumulados[] ={ 0,   772,  1544,  2316,  3088,  5588,  7565,  9227, 10677, 12044, 13292, 14526, 15792, 17292, 23479, 24981, 26249, 27485, 28736, 30104, 31558, 33224, 35206, 37713, 38485, 40029, 42345};
+int Radios[] ={314,  628,  942, 1257, 1571, 1885, 2199, 2513, 2827, 3142, 3456, 3770, 4084, 4398, 4084, 3770, 3456, 3142, 2827, 2513, 2199, 1885, 1571, 1257,  942,  628,  314};
+//unsigned int tiemposAcumulados[] ={ 0, 4950, 9070, 12090, 14780, 17650, 23480, 26380, 29120, 32210, 36430};
+//int Radios[] ={  0, 655, 1310, 1965, 2620, 3275, 2620, 1965, 1310, 655, 0};
 
 unsigned int maxValueArray = 0;
 // Variables Rutinas
@@ -70,6 +70,7 @@ volatile bool noesruido = 1;
 bool StartEncoderRoutine = 0;
 bool StartTimeRoutine = 0;
 bool FlatRutinaenCurso = 1;
+# define debugtime
 void setup()
 {
   Serial.begin(9600);
@@ -264,7 +265,7 @@ void bajarTickEncoder(bool decicionsubir)
       if (abs(_LeftEncoderTicks) > 0)
       {
         _LeftEncoderTicks = 0;
-        Serial.print("Subir");
+        Serial.println("Subir");
         apagadoMotorBomba(); // aseguramos que una vez se movio se apaga
         banderaConteo = 0;
         if (abs(_LeftEncoderTicks) >= 2)
@@ -278,7 +279,7 @@ void bajarTickEncoder(bool decicionsubir)
       encendidoMotorbajar();
       if (abs(_LeftEncoderTicks) > 0)
       {
-        Serial.print("Bajar");
+        Serial.println("Bajar");
         apagadoMotorBomba(); // aseguramos que una vez se movio se apaga
         banderaConteo = 0;
         // Vamos a ver cuantas ticks extra se contaron
