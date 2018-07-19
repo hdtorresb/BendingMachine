@@ -19,7 +19,7 @@ volatile bool _LeftEncoderBSet;
 volatile long _LeftEncoderTicks = 0;
 volatile long TicksComparacion = 0;
 volatile float verticalmm;
-volatile float paso = 0.6550;
+volatile float paso = 0.31416;
 
 // pines comunicacion y bombas
 #define Avance 39
@@ -70,6 +70,8 @@ volatile bool noesruido = 1;
 bool StartEncoderRoutine = 0;
 bool StartTimeRoutine = 0;
 bool FlatRutinaenCurso = 1;
+volatile bool BajarTick=0;
+volatile int  contadorPruebas=0;
 void setup()
 {
   Serial.begin(9600);
@@ -122,17 +124,40 @@ void setup()
   // inputString= "rutinaencoder";
 }
 
+
 void ISR_BotonStart()
 {
   if (FlatRutinaenCurso)
   {
-    StartEncoderRoutine = 1;
+    //StartEncoderRoutine = 1;
     LCDenrutina=1;
+    BajarTick=1;
+    contadorPruebas=0;
+    _LeftEncoderTicks = 0;
+    TicksComparacion = 0;
+
   }
 }
 
 void loop()
 {
+  if(BajarTick){
+    encendidoMotorbajar();
+        if(abs(_LeftEncoderTicks) > 0)
+  {
+    apagadoMotorBomba();
+    BajarTick=0;
+    /*
+    ClearLCDLeft = 1;
+    Serial.print("Ticks Totales= ");
+    Serial.println(_LeftEncoderTicks);
+    Serial.print("Tiempo Transcurrido= ");
+    Serial.println(contadorPruebas);
+    */
+  }
+}
+
+  
   if (StartEncoderRoutine and FlatRutinaenCurso)
   {     
     FlatRutinaenCurso = 0;
@@ -301,19 +326,6 @@ void HandleLeftMotorInterruptA()
 {
   // Leemos el estd de otro pin para saber si estamos avanzando o retrocediendo
   _LeftEncoderBSet = digitalReadFast(c_LeftEncoderPinB); // read the input pin
-  dif = millis() - tiempoinicial;
-  tiempoinicial = millis();
-  if (dif > 2)
-  {
-    noesruido = 1;
-  }
-  else
-  {
-    noesruido = 0;
-  }
-  if (noesruido)
-  {
-
 #ifdef LeftEncoderIsReversed
     _LeftEncoderTicks -= _LeftEncoderBSet? -1:+ 1;
     TicksComparacion -= _LeftEncoderBSet? -1:+ 1;
@@ -321,9 +333,7 @@ void HandleLeftMotorInterruptA()
     _LeftEncoderTicks += _LeftEncoderBSet? -1:+ 1;
     TicksComparacion += _LeftEncoderBSet? -1:+ 1;
 #endif
-
-    ClearLCDLeft = !ClearLCDLeft;
-  }
+ClearLCDLeft = !ClearLCDLeft;  
 }
 
 void encendidoMotorBombaSubir()
