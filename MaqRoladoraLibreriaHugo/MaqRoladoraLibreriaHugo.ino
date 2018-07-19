@@ -70,8 +70,6 @@ volatile bool noesruido = 1;
 bool StartEncoderRoutine = 0;
 bool StartTimeRoutine = 0;
 bool FlatRutinaenCurso = 1;
-volatile bool BajarTick=0;
-volatile int  contadorPruebas=0;
 void setup()
 {
   Serial.begin(9600);
@@ -129,34 +127,13 @@ void ISR_BotonStart()
 {
   if (FlatRutinaenCurso)
   {
-    //StartEncoderRoutine = 1;
+    StartEncoderRoutine = 1;
     LCDenrutina=1;
-    BajarTick=1;
-    contadorPruebas=0;
-    _LeftEncoderTicks = 0;
-    TicksComparacion = 0;
-
   }
 }
 
 void loop()
 {
-  if(BajarTick){
-    encendidoMotorbajar();
-        if(abs(_LeftEncoderTicks) > 0)
-  {
-    apagadoMotorBomba();
-    BajarTick=0;
-    /*
-    ClearLCDLeft = 1;
-    Serial.print("Ticks Totales= ");
-    Serial.println(_LeftEncoderTicks);
-    Serial.print("Tiempo Transcurrido= ");
-    Serial.println(contadorPruebas);
-    */
-  }
-}
-
   
   if (StartEncoderRoutine and FlatRutinaenCurso)
   {     
